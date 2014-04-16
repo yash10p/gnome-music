@@ -158,19 +158,22 @@ class Grilo(GObject.GObject):
         self.populate_items(Query.SONGS, offset, callback, count)
 
     @log
-    def populate_album_songs(self, album_id, callback, count=-1):
-        self.populate_items(Query.album_songs(album_id), 0, callback, count)
+    def populate_album_songs(self, album_id, callback, count=-1, data=None):
+        self.populate_items(Query.album_songs(album_id), 0, callback, count, data)
 
     @log
-    def populate_items(self, query, offset, callback, count=50):
+    def populate_items(self, query, offset, callback, count=50, data=None):
         options = self.options.copy()
         options.set_skip(offset)
         if count != -1:
             options.set_count(count)
 
         def _callback(source, param, item, remaining, data, offset):
-            callback(source, param, item, remaining)
-        self.tracker.query(query, self.METADATA_KEYS, options, _callback, None)
+            if data:
+                callback(source, param, item, remaining, data)
+            else:
+                callback(source, param, item, remaining)
+        self.tracker.query(query, self.METADATA_KEYS, options, _callback, data)
 
     @log
     def _search_callback(self):

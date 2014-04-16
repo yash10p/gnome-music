@@ -151,8 +151,9 @@ class AlbumArtCache:
             height = height or -1
             path = MediaArt.get_path(artist, album, "album", None)[0]
             if not os.path.exists(path):
-                self.cached_thumb_not_found(item, album, artist, path, callback, itr)
-            self.read_cached_pixbuf(path, width, height, callback, itr)
+                self.cached_thumb_not_found(item, width, height, callback, itr, artist, album, path)
+            else:
+                self.read_cached_pixbuf(path, width, height, callback, itr)
         except Exception as e:
             logger.warn("Error: %s" % e)
 
@@ -172,7 +173,7 @@ class AlbumArtCache:
             logger.warn("Error: %s" % e)
 
     @log
-    def cached_thumb_not_found(self, item, album, artist, path, callback, itr):
+    def cached_thumb_not_found(self, item, width, height, callback, itr, artist, album, path):
         try:
             uri = item.get_thumbnail()
             if uri is None:
@@ -183,8 +184,35 @@ class AlbumArtCache:
                     self.finish(None, path, callback, itr)
                     return
 
-            src = Gio.File.new_for_uri(uri)
-            dest = Gio.File.new_for_path(path)
-            src.copy(dest, Gio.FileCopyFlags.OVERWRITE)
+            data = [item, width, height, callback, itr, artist, album, path, uri]
+            if item.get_url() is None:
+                # No URL, probably an album. Get a single song.
+                grilo.populate_album_songs(item.get_id(), self._on_album_item_found, 1, data)
+            else:
+                self.process_media_art(data)
+        except Exception as e:
+            logger.warn("Error: %s" % e)
+
+    @log
+    def _on_album_item_found(self, source, param, item, remaining, data):
+        try:
+            item_album, width, height, callback, itr, artist, album, path, uri = data
+            data[0] = item
+            self.process_media_art(data)
+        except Exception as e:
+            logger.warn("Error: %s" % e)
+
+    @log
+    def process_media_art(self, data):
+        try:
+            item, width, height, callback, itr, artist, album, path, uri = data
+            f = Gio.File.new_for_uri(uri)
+            success, contents, etag = f.load_contents(None)
+            streamInfo = f.query_info('standard::content-type', Gio.FileQueryInfoFlags.NONE, None)
+            contentType = streamInfo.get_content_type()
+
+            MediaArt.process(contents, contentType, MediaArt.Type.ALBUM,
+                             artist, album, item.get_url())
+            self.read_cached_pixbuf(path, width, height, callback, itr)
         except Exception as e:
             logger.warn("Error: %s" % e)

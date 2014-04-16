@@ -31,7 +31,7 @@
 # delete this exception statement from your version.
 
 
-from gi.repository import Gtk, Gio, GLib, Gdk, Notify
+from gi.repository import Gtk, Gio, GLib, Gdk, Notify, MediaArt
 from gettext import gettext as _
 from gnomemusic.window import Window
 from gnomemusic.mpris import MediaPlayer2Service
@@ -108,6 +108,7 @@ class Application(Gtk.Application):
     @log
     def do_startup(self):
         Gtk.Application.do_startup(self)
+        MediaArt.init()
 
         Notify.init(_("Music"))
 
@@ -116,6 +117,7 @@ class Application(Gtk.Application):
     @log
     def quit(self, action=None, param=None):
         self._window.destroy()
+        MediaArt.shutdown()
 
     def do_activate(self):
         if not self._window:
