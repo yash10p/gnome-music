@@ -34,7 +34,6 @@
 from gi.repository import Gtk
 from gi.repository import GObject
 from gi.repository import Gd
-from gi.repository import Gio
 from gi.repository import Grl
 from gi.repository import Gio
 from gi.repository import Pango
