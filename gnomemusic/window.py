@@ -241,6 +241,23 @@ class Window(Gtk.ApplicationWindow):
         self.views.append(view_class(self, self.player))
 
         self._stack.add_titled(self.views[0], _("Empty"), _("Empty"))
+
+        self.fake_stack = Gtk.Stack()
+        self.views = []
+        self.views.append(Views.Albums(self, self.player))
+        self.views.append(Views.Artists(self, self.player))
+        self.views.append(Views.Songs(self, self.player))
+        self.views.append(Views.Playlist(self, self.player))
+
+        for i in self.views:
+            if i.title:
+                self.fake_stack.add_titled(i, i.name, i.title)
+            else:
+                self.fake_stack.add_named(i, i.name)
+
+        self.toolbar.set_stack(self.fake_stack)
+        self.toolbar._stack_switcher.set_sensitive(False)
+
         self.toolbar._search_button.set_sensitive(False)
         self.toolbar._select_button.set_sensitive(False)
 
