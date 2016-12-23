@@ -24,10 +24,14 @@
 
 from gi.repository import Gtk, Gd, GLib, Pango, Gio
 
+from gnomemusic import TrackerWrapper
 from gnomemusic import log
 from gnomemusic.grilo import grilo
 from gnomemusic.playlists import Playlists
+from gnomemusic.query import Query
 import gnomemusic.utils as utils
+
+tracker = TrackerWrapper().tracker
 
 
 class PlaylistDialog():
@@ -39,41 +43,90 @@ class PlaylistDialog():
     def __init__(self, parent):
         self.ui = Gtk.Builder()
         self.ui.add_from_resource('/org/gnome/Music/PlaylistDialog.ui')
-        self.dialog_box = self.ui.get_object('dialog1')
-        self.dialog_box.set_transient_for(parent)
+        self.add_playlist_stack = self.ui.get_object('add_playlist_stack')
+        print('This is the STACK - ' +str(self.add_playlist_stack))
 
-        self.view = self.ui.get_object('treeview1')
-        self.view.set_activate_on_single_click(False)
-        self.selection = self.ui.get_object('treeview-selection1')
-        self.selection.connect('changed', self._on_selection_changed)
-        self._add_list_renderers()
-        self.view.connect('row-activated', self._on_item_activated)
+        cursor = tracker.query(Query.all_non_static_playlists_count(), None)
+        if cursor is not None and cursor.next():
+            count = cursor.get_integer(0)
+            print('The value of count is '+ str(count))
 
-        self.model = self.ui.get_object('liststore1')
-        self.populate()
+        if count > 0:
+            print ('Dialog 1 ??')
+            self.dialog_box = self.ui.get_object('dialog1')
+            self.dialog_box.set_transient_for(parent)
 
-        self.title_bar = self.ui.get_object('headerbar1')
-        self.dialog_box.set_titlebar(self.title_bar)
+            self.view = self.ui.get_object('treeview1')
+            self.view.set_activate_on_single_click(False)
+            self.selection = self.ui.get_object('treeview-selection1')
+            self.selection.connect('changed', self._on_selection_changed)
+            self._add_list_renderers()
+            self.view.connect('row-activated', self._on_item_activated)
 
-        self._cancel_button = self.ui.get_object('cancel-button')
-        self._select_button = self.ui.get_object('select-button')
-        self._select_button.set_sensitive(False)
-        self._cancel_button.connect('clicked', self._on_cancel_button_clicked)
-        self._select_button.connect('clicked', self._on_selection)
+            self.model = self.ui.get_object('liststore1')
+            self.populate()
 
-        self._new_playlist_button = self.ui.get_object('new-playlist-button')
-        self._new_playlist_button.connect('clicked', self._on_editing_done)
+            self.title_bar = self.ui.get_object('headerbar1')
+            self.dialog_box.set_titlebar(self.title_bar)
 
-        self._new_playlist_entry = self.ui.get_object('new-playlist-entry')
-        self._new_playlist_entry.connect('changed',
-                                         self._on_new_playlist_entry_changed)
-        self._new_playlist_entry.connect('activate',
-                                         self._on_editing_done)
-        self._new_playlist_entry.connect('focus-in-event',
-                                         self._on_new_playlist_entry_focused)
+            self._cancel_button = self.ui.get_object('cancel-button')
+            self._select_button = self.ui.get_object('select-button')
+            self._select_button.set_sensitive(False)
+            self._cancel_button.connect('clicked', self._on_cancel_button_clicked)
+            self._select_button.connect('clicked', self._on_selection)
 
-        self.playlist = Playlists.get_default()
-        self.playlist.connect('playlist-created', self._on_playlist_created)
+            self._new_playlist_button = self.ui.get_object('new-playlist-button')
+            self._new_playlist_button.connect('clicked', self._on_editing_done)
+
+            self._new_playlist_entry = self.ui.get_object('new-playlist-entry')
+            self._new_playlist_entry.connect('changed',
+                                             self._on_new_playlist_entry_changed)
+            self._new_playlist_entry.connect('activate',
+                                             self._on_editing_done)
+            self._new_playlist_entry.connect('focus-in-event',
+                                             self._on_new_playlist_entry_focused)
+
+            self.playlist = Playlists.get_default()
+            self.playlist.connect('playlist-created', self._on_playlist_created)
+
+        else:
+            self.dialog_box = self.ui.get_object('dialog2')
+            self.dialog_box.set_transient_for(parent)
+
+            self.view = self.ui.get_object('treeview1')
+            self.view.set_activate_on_single_click(False)
+            self.selection = self.ui.get_object('treeview-selection1')
+            self.selection.connect('changed', self._on_selection_changed)
+            self._add_list_renderers()
+            self.view.connect('row-activated', self._on_item_activated)
+
+            self.model = self.ui.get_object('liststore1')
+            self.populate()
+
+            self.title_bar = self.ui.get_object('headerbar1')
+            self.dialog_box.set_titlebar(self.title_bar)
+
+            self._cancel_button = self.ui.get_object('cancel-button')
+            self._select_button = self.ui.get_object('select-button')
+            self._select_button.set_sensitive(False)
+            self._cancel_button.connect('clicked', self._on_cancel_button_clicked)
+            self._select_button.connect('clicked', self._on_selection)
+
+            self._new_playlist_button = self.ui.get_object('create-first-playlist-button')
+            self._new_playlist_button.connect('clicked', self._on_editing_done)
+
+            self._new_playlist_entry = self.ui.get_object('first-playlist-entry')
+            self._new_playlist_entry.connect('changed',
+                                             self._on_new_playlist_entry_changed)
+            self._new_playlist_entry.connect('activate',
+                                             self._on_editing_done)
+            self._new_playlist_entry.connect('focus-in-event',
+                                             self._on_new_playlist_entry_focused)
+
+            self.playlist = Playlists.get_default()
+            self.playlist.connect('playlist-created', self._on_playlist_created)
+
+
 
     @log
     def get_selected(self):

@@ -253,6 +253,8 @@
                   <object class="GtkEntry" id="first-playlist-entry">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+                    <property name="margin_left">40</property>
+                    <property name="margin_right">40</property>
                     <property name="hexpand">True</property>
                   </object>
                   <packing>
@@ -268,12 +270,14 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="margin_left">50</property>
+                    <property name="margin_right">50</property>
                     <property name="margin_top">30</property>
                     <property name="margin_bottom">20</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">3</property>
                   </packing>
                 </child>
