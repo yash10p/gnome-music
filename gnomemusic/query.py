@@ -132,6 +132,21 @@ class Query():
         return query
 
     @staticmethod
+    def all_non_static_playlists_count():
+        query = """
+        SELECT
+            COUNT(?u)
+        { ?u a nmm:Playlist .
+        OPTIONAL { ?u nao:hasTag ?t } .
+        FILTER (! BOUND (?t) || rdfs:comment(?t)
+        NOT IN ('MOST_PLAYED', 'NEVER_PLAYED',
+        'RECENTLY_PLAYED', 'RECENTLY_ADDED', 'FAVORITES'))
+        }
+        """.replace('\n', ' ').strip()
+
+        return query
+        
+    @staticmethod
     def albums(where_clause):
         query = """
     SELECT
